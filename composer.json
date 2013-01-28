@@ -1,0 +1,23 @@
+{
+    "name": "marcelsud\/melody-router",
+    "description": "Simple Standalone Router",
+    "version": "1.1.26",
+    "type": "library",
+    "time": "2013-01-27 21:26:00",
+    "license": "BSD Style",
+    "homepage": "https://github.com/marcelsud/melody-router",
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "authors": [
+        {
+            "name": "Marcelo Santos",
+            "email": "marcelsud@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Melody\\Router": "src\/"
+        }
+    }
+}
