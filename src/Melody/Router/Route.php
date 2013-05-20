@@ -5,8 +5,7 @@ class Route implements RouteInterface
 {
     protected $name;
     protected $pattern;
-    protected $compiledPattern;
-    protected $parameters = array();
+    protected $parameters;
 
     public function getName()
     {
@@ -28,16 +27,6 @@ class Route implements RouteInterface
         $this->pattern = $pattern;
     }
 
-    public function getCompiledPattern()
-    {
-        return $this->compiledPattern;
-    }
-
-    public function setCompiledPattern($compiledPattern)
-    {
-        $this->compiledPattern = $compiledPattern;
-    }
-
     public function getParameters()
     {
         return $this->parameters;
@@ -48,8 +37,4 @@ class Route implements RouteInterface
         $this->parameters = $parameters;
     }
 
-    public function match($request)
-    {
-        return (bool) preg_match('#^' . $this->getCompiledPattern() . '$#', $request);
-    }
 }
