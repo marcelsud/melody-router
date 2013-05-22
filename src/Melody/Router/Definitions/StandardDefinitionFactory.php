@@ -7,7 +7,7 @@ class StandardDefinitionFactory implements DefinitionFactoryInterface
     {
         $definition = new StandardDefinition();
         $definition->addRule('(:int)', function ($input) {
-            return (is_numeric($input) && is_int($input));
+            return is_numeric($input) && (int) $input == $input;
         });
 
         $definition->addRule('(:str)', function ($input) {
@@ -21,6 +21,11 @@ class StandardDefinitionFactory implements DefinitionFactoryInterface
         $definition->addRule('(:slug)', function ($input) {
             return preg_match('/^[a-z][-a-z0-9]*$/', $input);
         });
+
+        $definition->addRule('(:alpha)', function ($input) {
+            return ctype_alpha($input);
+        });
+
 
         return $definition;
     }

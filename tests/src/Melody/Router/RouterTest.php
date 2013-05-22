@@ -34,7 +34,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $router = new Router(StandardDefinitionFactory::build());
         $router->add(RouteFactory::build("article", "/article/(:alpha)/"));
 
-        $route = $router->match("/article/alphanumeric/");
+        $route = $router->match("/article/alpha/");
         $this->assertInstanceof("Melody\Router\Route", $route);
     }
 
@@ -61,21 +61,82 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $router->add(RouteFactory::build("article", "/article/(:alpha)/(:int)/(:slug)"));
         $router->add(RouteFactory::build("product", "/product/(:alpha)/(:int)/(:slug)"));
 
-        $routeProduct = $router->match("/product/ThisIsATest/1234/test-this-slug/");
-        var_dump($routeProduct);
-        die;
-        $this->assertInstanceof("Melody\Router\Route", $routeProduct);
-        $this->assertEquals("product", $routeProduct->getName());
+        $productRoute = $router->match("/product/alpha/1234/test-this-slug/");
+        $this->assertInstanceof("Melody\Router\Route", $productRoute);
+        $this->assertEquals("product", $productRoute->getName());
 
-        $routeArticle = $router->match("/article/ThisIsATest/1234/test-this-slug/");
-        $this->assertInstanceof("Melody\Router\Route", $routeArticle);
-        $this->assertEquals("article", $routeArticle->getName());
+        $articleRoute = $router->match("/article/alpha/1234/test-this-slug/");
+        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
+        $this->assertEquals("article", $articleRoute->getName());
+    }
+
+    public function test_route_alnum_rule() {
+        $router = new Router(StandardDefinitionFactory::build());
+        $router->add(RouteFactory::build("article", "/article/(:alnum)/"));
+
+        $articleRoute = $router->match("/article/alphanumeric1234/");
+        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
+        $this->assertEquals("article", $articleRoute->getName());
+    }
+
+    public function test_route_any_rule() {
+        $router = new Router(StandardDefinitionFactory::build());
+        $router->add(RouteFactory::build("article", "/article/*/"));
+
+        $articleRoute = $router->match("/article/daodeijjir30daidaikrq393qpfakdaij2o34ij4iife-1231-/");
+        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
+        $this->assertEquals("article", $articleRoute->getName());
+    }
+
+    public function test_no_segments_route() {
+        $router = new Router(StandardDefinitionFactory::build());
+        $router->add(RouteFactory::build("home", "/"));
+
+        $homeRoute = $router->match("/");
+        $this->assertEquals("home", $homeRoute->getName());
     }
 
     public function test_not_matching_route()
     {
         $router = new Router(StandardDefinitionFactory::build());
-        $this->assertFalse($router->match("/hello/world/"));
+        $router->add(RouteFactory::build("article", "/article/(:alpha)/(:int)/(:slug)"));
+        $router->add(RouteFactory::build("product", "/product/(:alpha)/(:int)/(:slug)"));
+
+        $wrongRoute = $router->match("/article/wrong-route/");
+        $this->assertFalse($wrongRoute instanceof Melody\Router\Route);
+    }
+
+    public function test_get_route() {
+        $router = new Router(StandardDefinitionFactory::build());
+        $router->add(RouteFactory::build("article", "/article/(:int)/(:slug)"));
+        $router->add(RouteFactory::build("product", "/product/(:int)/(:slug)"));
+
+        $articleRoute = $router->get("article");
+        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
+        $this->assertEquals("article", $articleRoute->getName());
+
+        $productRoute = $router->get("product");
+        $this->assertInstanceof("Melody\Router\Route", $productRoute);
+        $this->assertEquals("product", $productRoute->getName());
+
+    }
+
+    public function test_get_routes() {
+        $router = new Router(StandardDefinitionFactory::build());
+
+        $router->add(RouteFactory::build("article", "/article/(:int)/(:slug)"));
+        $router->add(RouteFactory::build("product", "/product/(:int)/(:slug)"));
+
+        $routes = $router->getRoutes();
+
+        $this->assertEquals("article", $routes["article"]->getName());
+        $this->assertEquals("product", $routes["product"]->getName());
+    }
+
+    public function test_get_not_found_route() {
+        $router = new Router(StandardDefinitionFactory::build());
+
+        $this->assertFalse($router->get("not-found-route"));
     }
 
 }

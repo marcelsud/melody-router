@@ -19,35 +19,65 @@ class Router implements RouterInterface
         $this->routes[$route->getName()] = $route;
     }
 
+    public function getRoutes() {
+        return $this->routes;
+    }
+
+    public function get($name) {
+        if (isset($this->routes[$name])) {
+            return $this->routes[$name];
+        }
+
+        return false;
+    }
+
+    public function checkRoute($url, $route) {
+        $rules = $this->definition->getRules();
+
+        $segmentsToValidate = explode("/", trim($url, "/"));
+        $patternSegments = explode("/", trim($route->getPattern(), "/"));
+
+        if (count($segmentsToValidate) !== count($patternSegments)) {
+            return false;
+        }
+
+        foreach($patternSegments as $key => $segment) {
+            $valid = false;
+            // TODO Throw exception if rule don't exists
+
+            if ($segment == "*") {
+                $valid = true;
+            } elseif (isset($rules[$segment])) {
+                $valid = $rules[$segment]($segmentsToValidate[$key]);
+            } elseif ($segmentsToValidate[$key] == $patternSegments[$key]) {
+                $valid = true;
+            }
+
+            if (!$valid) {
+                break;
+            }
+        }
+
+        if ($valid) {
+            return $route;
+        }
+
+        return false;
+    }
+
     public function match($url)
     {
         foreach ($this->routes as $route)
         {
-            $valid = true;
-            $rules = $this->definition->getRules();
-
-            $segmentsToValidate = explode("/", trim($url, "/"));
-            $patternSegments = explode("/", trim($route->getPattern(), "/"));
-
-            if (count($segmentsToValidate) > 0) {
-                foreach($segmentsToValidate as $key => $segment) {
-                    if (isset($rules[$segment])) {
-                        $valid = $rules[$segment]($segment[$key]);
-                    } elseif ($segmentsToValidate[$key] == $patternSegments[$key]){
-                        $valid = true;
-                    }
-
-                    if (!$valid) {
-                        return false;
-                    }
-                }
-
-                if ($valid) {
-                    return $route;
-                }
+            if ($url === $route->getPattern()) {
+                return $route;
             }
 
-            return $valid;
+            $matchedRoute = $this->checkRoute($url, $route);
+
+            if ($matchedRoute) {
+                return $matchedRoute;
+            }
         }
 
         return false;
