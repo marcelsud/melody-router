@@ -1,11 +1,13 @@
 <?php
 namespace Melody\Router\Definitions;
 
+use Closure;
+
 class StandardDefinition implements DefinitionInterface
 {
     protected $rules;
 
-    public function addRule($rule, callable $function) {
+    public function addRule($rule, Closure $function) {
         $this->rules[$rule] = $function;
     }
 
