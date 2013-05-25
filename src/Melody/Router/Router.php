@@ -32,8 +32,6 @@ class Router implements RouterInterface
     }
 
     public function checkRoute($url, $route) {
-        $rules = $this->definition->getRules();
-
         $segmentsToValidate = explode("/", trim($url, "/"));
         $patternSegments = explode("/", trim($route->getPattern(), "/"));
 
@@ -45,10 +43,8 @@ class Router implements RouterInterface
             $valid = false;
             // TODO Throw exception if rule don't exists
 
-            if ($segment == "*") {
-                $valid = true;
-            } elseif (isset($rules[$segment])) {
-                $valid = $rules[$segment]($segmentsToValidate[$key]);
+            if ($this->definition->exists($segment)) {
+                $valid = $this->definition->rules[$segment]($segmentsToValidate[$key]);
             } elseif ($segmentsToValidate[$key] == $patternSegments[$key]) {
                 $valid = true;
             }
@@ -58,7 +54,7 @@ class Router implements RouterInterface
             }
         }
 
-        if ($valid) {
+        if (isset($valid) && $valid) {
             return $route;
         }
 

@@ -5,6 +5,7 @@ use Closure;
 
 interface DefinitionInterface
 {
-    public function addRule($rule, Closure $function);
-    public function getRules();
+    public function addRule($rule, Closure $callback);
+    public function exists($rule);
+    public static function factory();
 }
