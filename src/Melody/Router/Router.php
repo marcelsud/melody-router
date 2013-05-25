@@ -41,13 +41,7 @@ class Router implements RouterInterface
 
         foreach($patternSegments as $key => $segment) {
             $valid = false;
-            // TODO Throw exception if rule don't exists
-
-            if ($this->definition->exists($segment)) {
-                $valid = $this->definition->rules[$segment]($segmentsToValidate[$key]);
-            } elseif ($segmentsToValidate[$key] == $patternSegments[$key]) {
-                $valid = true;
-            }
+            $valid = $this->assert($segmentsToValidate[$key], $segment, $route);
 
             if (!$valid) {
                 break;
@@ -56,6 +50,36 @@ class Router implements RouterInterface
 
         if (isset($valid) && $valid) {
             return $route;
+        }
+
+        return false;
+    }
+
+    public function assert($input, $rule, $route)
+    {
+        $parameters = $route->getParameters();
+
+        if ($input == $rule) {
+            return true;
+        }
+
+        if (preg_match('/^{(.*?)}$/', $rule, $matches)) {
+            if (isset($parameters['requirements'][$matches[1]])) {
+                if ($this->validate($input, $parameters['requirements'][$matches[1]])) {
+                    $route->addInput($matches[1], $input);
+
+                    return true;
+                }
+            }
+        }
+
+        return $this->validate($input, $rule);
+    }
+
+    public function validate($input, $rule)
+    {
+        if ($this->definition->exists($rule)) {
+            return $this->definition->rules[$rule]($input);
         }
 
         return false;

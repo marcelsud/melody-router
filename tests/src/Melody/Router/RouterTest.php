@@ -10,79 +10,49 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 {
     public function test_matching_string_route()
     {
-        $parameters = array(
-                '_controller' => 'DefaultController',
-                '_action' => 'indexAction',
-                '_format' => 'html'
-        );
-
         $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("hello_world", "/hello/:str/", $parameters));
+        $router->add(RouteFactory::build("hello", "/hello/:str/"));
 
         $route = $router->match("/hello/world/");
         $this->assertInstanceof("Melody\Router\Route", $route);
-        $this->assertEquals("hello_world", $route->getName());
-        $this->assertEquals("/hello/:str/", $route->getPattern());
-        $this->assertEquals($parameters, $route->getParameters());
     }
 
-    public function test_matching_alphanumeric_route()
+    public function test_get_route_pattern()
     {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/:str/"));
+        $pattern = "/posts/a-successful-git-branching-model/";
 
-        $route = $router->match("/article/alpha/");
-        $this->assertInstanceof("Melody\Router\Route", $route);
+        $router = new Router(StandardDefinition::factory());
+        $router->add(RouteFactory::build("posts", $pattern));
+
+        $route = $router->match($pattern);
+        $this->assertEquals($pattern, $route->getPattern());
     }
 
-    public function test_matching_integer_route()
+    public function test_get_route_requirements()
     {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("product", "/product/:int/"));
+        $parameters['requirements']['name'] = ':str';
 
-        $route = $router->match("/product/1234/");
-        $this->assertInstanceof("Melody\Router\Route", $route);
+        $router = new Router(StandardDefinition::factory());
+        $router->add(RouteFactory::build("hello", "/hello/{name}/", $parameters));
+
+        $route = $router->match("/hello/john/");
+        $this->assertEquals("john", $route->getInput("name"));
     }
 
-    public function test_matching_slug_route()
+    public function test_get_route_inputs()
     {
+        $parameters['requirements']['slug'] = ':slug';
+        $parameters['requirements']['id'] = ':int';
+
         $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("product", "/product/:slug/"));
+        $router->add(RouteFactory::build("hello", "/product/{slug}/{id}", $parameters));
 
-        $route = $router->match("/product/test-this-slug/");
-        $this->assertInstanceof("Melody\Router\Route", $route);
-    }
+        $route = $router->match("/product/note-book-dell/1234");
+        $inputs = $route->getInputs();
 
-    public function test_multi_segments_route() {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/:str/:int/:slug"));
-        $router->add(RouteFactory::build("product", "/product/:str/:int/:slug"));
-
-        $productRoute = $router->match("/product/alpha/1234/test-this-slug/");
-        $this->assertInstanceof("Melody\Router\Route", $productRoute);
-        $this->assertEquals("product", $productRoute->getName());
-
-        $articleRoute = $router->match("/article/alpha/1234/test-this-slug/");
-        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
-        $this->assertEquals("article", $articleRoute->getName());
-    }
-
-    public function test_route_alnum_rule() {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/:alnum/"));
-
-        $articleRoute = $router->match("/article/alphanumeric1234/");
-        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
-        $this->assertEquals("article", $articleRoute->getName());
-    }
-
-    public function test_route_any_rule() {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/*/"));
-
-        $articleRoute = $router->match("/article/daodeijjir30daidaikrq393qpfakdaij2o34ij4iife-1231-/");
-        $this->assertInstanceof("Melody\Router\Route", $articleRoute);
-        $this->assertEquals("article", $articleRoute->getName());
+        $this->assertEquals("note-book-dell", $inputs["slug"]);
+        $this->assertEquals(1234, $inputs["id"]);
+        $this->assertFalse($route->getInput("name"));
     }
 
     public function test_no_segments_route() {
@@ -137,4 +107,3 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     }
 
 }
-

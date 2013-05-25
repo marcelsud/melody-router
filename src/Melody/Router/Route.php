@@ -6,6 +6,7 @@ class Route implements RouteInterface
     protected $name;
     protected $pattern;
     protected $parameters;
+    protected $inputs = array();
 
     public function getName()
     {
@@ -34,7 +35,30 @@ class Route implements RouteInterface
 
     public function setParameters($parameters)
     {
+        if (!isset($parameters['requirements'])) {
+            $parameters['requirements']=  array();
+        }
+
         $this->parameters = $parameters;
+    }
+
+    public function addInput($key, $value)
+    {
+        $this->inputs[$key] = $value;
+    }
+
+    public function getInputs()
+    {
+        return $this->inputs;
+    }
+
+    public function getInput($key)
+    {
+        if (isset($this->inputs[$key])) {
+            return $this->inputs[$key];
+        }
+
+        return false;
     }
 
 }

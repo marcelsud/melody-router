@@ -27,10 +27,6 @@ class StandardDefinition implements DefinitionInterface
             return preg_match('/^[a-z][-a-z0-9]*$/', $input);
         };
 
-        $definition->rules['*'] = function ($input) {
-            return true;
-        };
-
         return $definition;
     }
 
