@@ -11,5 +11,4 @@ interface RouterInterface
     public function getRoutes();
     public function get($name);
     public function match($url);
-    public function validate($input, $rule);
 }

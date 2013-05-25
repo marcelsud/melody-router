@@ -31,7 +31,25 @@ class Router implements RouterInterface
         return false;
     }
 
-    public function checkRoute($url, $route) {
+    public function match($url)
+    {
+        foreach ($this->routes as $route)
+        {
+            if ($url === $route->getPattern()) {
+                return $route;
+            }
+
+            $matchedRoute = $this->checkRoute($url, $route);
+
+            if ($matchedRoute) {
+                return $matchedRoute;
+            }
+        }
+
+        return false;
+    }
+
+    private function checkRoute($url, $route) {
         $segmentsToValidate = explode("/", trim($url, "/"));
         $patternSegments = explode("/", trim($route->getPattern(), "/"));
 
@@ -55,7 +73,7 @@ class Router implements RouterInterface
         return false;
     }
 
-    public function assert($input, $rule, $route)
+    private function assert($input, $rule, RouteInterface $route)
     {
         $parameters = $route->getParameters();
 
@@ -64,40 +82,20 @@ class Router implements RouterInterface
         }
 
         if (preg_match('/^{(.*?)}$/', $rule, $matches)) {
-            if (isset($parameters['requirements'][$matches[1]])) {
-                if ($this->validate($input, $parameters['requirements'][$matches[1]])) {
-                    $route->addInput($matches[1], $input);
+            if (isset($parameters['requirements'][$matches[1]]) && $this->validate($input, $parameters['requirements'][$matches[1]])) {
+                $route->addInput($matches[1], $input);
 
-                    return true;
-                }
+                return true;
             }
-        }
-
-        return $this->validate($input, $rule);
-    }
-
-    public function validate($input, $rule)
-    {
-        if ($this->definition->exists($rule)) {
-            return $this->definition->rules[$rule]($input);
         }
 
         return false;
     }
 
-    public function match($url)
+    private function validate($input, $rule)
     {
-        foreach ($this->routes as $route)
-        {
-            if ($url === $route->getPattern()) {
-                return $route;
-            }
-
-            $matchedRoute = $this->checkRoute($url, $route);
-
-            if ($matchedRoute) {
-                return $matchedRoute;
-            }
+        if ($this->definition->exists($rule)) {
+            return $this->definition->rules[$rule]($input);
         }
 
         return false;

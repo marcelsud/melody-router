@@ -10,11 +10,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 {
     public function test_matching_string_route()
     {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("hello", "/hello/:str/"));
+        $parameters['requirements']['name'] = ':str';
 
-        $route = $router->match("/hello/world/");
-        $this->assertInstanceof("Melody\Router\Route", $route);
+        $router = new Router(StandardDefinition::factory());
+        $router->add(RouteFactory::build("hello", "/hello/{name}/", $parameters));
+
+        $route = $router->match("/hello/john/");
+        $this->assertEquals("john", $route->getInput("name"));
     }
 
     public function test_get_route_pattern()
@@ -26,17 +28,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
         $route = $router->match($pattern);
         $this->assertEquals($pattern, $route->getPattern());
-    }
-
-    public function test_get_route_requirements()
-    {
-        $parameters['requirements']['name'] = ':str';
-
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("hello", "/hello/{name}/", $parameters));
-
-        $route = $router->match("/hello/john/");
-        $this->assertEquals("john", $route->getInput("name"));
     }
 
     public function test_get_route_inputs()
@@ -65,18 +56,19 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function test_not_matching_route()
     {
-        $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/:alpha/:int/:slug"));
-        $router->add(RouteFactory::build("product", "/product/:alpha/:int/:slug"));
+        $parameters['requirements']['article_name'] = ':alpha';
 
-        $wrongRoute = $router->match("/article/wrong-route/");
+        $router = new Router(StandardDefinition::factory());
+        $router->add(RouteFactory::build("article", "/article/{article_name}/", $parameters));
+
+        $wrongRoute = $router->match("/article/not-a-alpha-string/");
         $this->assertFalse($wrongRoute instanceof Melody\Router\Route);
     }
 
     public function test_get_route() {
         $router = new Router(StandardDefinition::factory());
-        $router->add(RouteFactory::build("article", "/article/:int/:slug"));
-        $router->add(RouteFactory::build("product", "/product/:int/:slug"));
+        $router->add(RouteFactory::build("article", "/article/{id}/{article_slug}"));
+        $router->add(RouteFactory::build("product", "/product/{id}/{product_slug}"));
 
         $articleRoute = $router->get("article");
         $this->assertInstanceof("Melody\Router\Route", $articleRoute);
@@ -91,8 +83,8 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     public function test_get_routes() {
         $router = new Router(StandardDefinition::factory());
 
-        $router->add(RouteFactory::build("article", "/article/:int/:slug"));
-        $router->add(RouteFactory::build("product", "/product/:int/:slug"));
+        $router->add(RouteFactory::build("article", "/article/{id}/{article_slug}"));
+        $router->add(RouteFactory::build("product", "/product/{id}/{product_slug}"));
 
         $routes = $router->getRoutes();
 
@@ -103,7 +95,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     public function test_get_not_found_route() {
         $router = new Router(StandardDefinition::factory());
 
-        $this->assertFalse($router->get("not-found-route"));
+        $this->assertFalse($router->get("/not-found-page/"));
+    }
+
+    public function test_match_not_found_route() {
+        $router = new Router(StandardDefinition::factory());
+        $router->add(RouteFactory::build("product_list", "/admin/product/list/"));
+
+        $route = $router->match("/product/list/");
+        $this->assertFalse($route instanceof Melody\Router\Route);
     }
 
 }
